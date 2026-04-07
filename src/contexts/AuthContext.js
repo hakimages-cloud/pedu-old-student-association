@@ -1,4 +1,17 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { 
+  auth, 
+  database, 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  signOut, 
+  onAuthStateChanged,
+  ref,
+  set,
+  get,
+  update,
+  push
+} from '../services/firebase';
 
 const AuthContext = createContext();
 
@@ -15,51 +28,39 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // For demo purposes, we'll use localStorage instead of Firebase
-    // In production, you'd use Firebase Auth or another authentication service
-    
-    const storedUser = localStorage.getItem('posa_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        // Get user data from database
+        const userRef = ref(database, `users/${firebaseUser.uid}`);
+        const snapshot = await get(userRef);
+        
+        if (snapshot.exists()) {
+          const userData = snapshot.val();
+          setUser({
+            id: firebaseUser.uid,
+            email: firebaseUser.email,
+            ...userData
+          });
+        } else {
+          setUser({
+            id: firebaseUser.uid,
+            email: firebaseUser.email,
+            name: firebaseUser.displayName || 'User'
+          });
+        }
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
 
-    // Uncomment this for Firebase Auth
-    // const unsubscribe = onAuthStateChanged(auth, (user) => {
-    //   setUser(user);
-    //   setLoading(false);
-    // });
-    // return unsubscribe;
+    return unsubscribe;
   }, []);
 
   const login = async (email, password) => {
     try {
-      // Real authentication - check localStorage for registered users
-      const users = JSON.parse(localStorage.getItem('posa_users') || '[]');
-      const foundUser = users.find(u => u.email === email && u.password === password);
-      
-      if (foundUser) {
-        const userData = {
-          id: foundUser.id,
-          email: foundUser.email,
-          name: foundUser.name,
-          role: foundUser.role,
-          membershipNumber: foundUser.membershipNumber,
-          phone: foundUser.phone,
-          yearOfCompletion: foundUser.yearOfCompletion,
-          program: foundUser.program,
-          address: foundUser.address,
-          occupation: foundUser.occupation,
-          bio: foundUser.bio,
-          dependants: foundUser.dependants || []
-        };
-        
-        setUser(userData);
-        localStorage.setItem('posa_user', JSON.stringify(userData));
-        return { success: true };
-      } else {
-        throw new Error('Invalid email or password');
-      }
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      return { success: true };
     } catch (error) {
       return { success: false, error: error.message };
     }
@@ -67,35 +68,41 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      // Check if user already exists
-      const users = JSON.parse(localStorage.getItem('posa_users') || '[]');
-      const existingUser = users.find(u => u.email === userData.email);
+      // Create Firebase user
+      const userCredential = await createUserWithEmailAndPassword(
+        auth, 
+        userData.email, 
+        userData.password
+      );
       
-      if (existingUser) {
-        throw new Error('An account with this email already exists');
-      }
-
+      const firebaseUser = userCredential.user;
+      
       // Generate membership number
-      const membershipNumber = `POS${String(users.length + 1).padStart(4, '0')}`;
+      const usersRef = ref(database, 'users');
+      const usersSnapshot = await get(usersRef);
+      const userCount = usersSnapshot.exists() ? Object.keys(usersSnapshot.val()).length : 0;
+      const membershipNumber = `POS${String(userCount + 1).padStart(4, '0')}`;
       
+      // Save user data to database
+      const userRef = ref(database, `users/${firebaseUser.uid}`);
       const newUser = {
-        id: Date.now().toString(),
-        ...userData,
+        name: userData.name,
+        email: userData.email,
+        phone: userData.phone,
+        yearOfCompletion: userData.yearOfCompletion,
+        program: userData.program,
         membershipNumber,
-        role: 'member', // All new registrations start as members
-        status: 'pending', // Pending approval from admin
+        role: 'member',
+        status: 'active',
         joinDate: new Date().toISOString().split('T')[0],
         duesStatus: 'pending',
-        dependants: []
+        dependants: [],
+        address: '',
+        occupation: '',
+        bio: ''
       };
       
-      // Save to users list
-      users.push(newUser);
-      localStorage.setItem('posa_users', JSON.stringify(users));
-      
-      // Auto-login after registration
-      setUser(newUser);
-      localStorage.setItem('posa_user', JSON.stringify(newUser));
+      await set(userRef, newUser);
       
       return { success: true, membershipNumber };
     } catch (error) {
@@ -103,15 +110,21 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('posa_user');
+  const logout = async () => {
+    await signOut(auth);
   };
 
-  const updateUser = (updatedData) => {
-    const updatedUser = { ...user, ...updatedData };
-    setUser(updatedUser);
-    localStorage.setItem('posa_user', JSON.stringify(updatedUser));
+  const updateUser = async (updates) => {
+    if (!user) return;
+    
+    try {
+      const userRef = ref(database, `users/${user.id}`);
+      await update(userRef, updates);
+      setUser(prev => ({ ...prev, ...updates }));
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
   };
 
   const value = {
@@ -125,7 +138,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={value}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 };

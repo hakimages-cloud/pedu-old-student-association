@@ -1,27 +1,45 @@
-// Firebase configuration - Replace with your actual Firebase config
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
+import { getDatabase, ref, set, get, update, remove, push, onValue } from "firebase/database";
+
+// Your web app's Firebase configuration
+// Replace with your actual Firebase config
 const firebaseConfig = {
-  apiKey: "your-api-key",
-  authDomain: "your-project.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project.appspot.com",
+  apiKey: "AIzaSyDemoKey-ReplaceWithYourActualKey",
+  authDomain: "pedu-old-student-association.firebaseapp.com",
+  databaseURL: "https://pedu-old-student-association-default-rtdb.firebaseio.com",
+  projectId: "pedu-old-student-association",
+  storageBucket: "pedu-old-student-association.appspot.com",
   messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef"
+  appId: "1:123456789:web:abcdef123456"
 };
 
 // Initialize Firebase
-// import { initializeApp } from 'firebase/app';
-// import { getAuth } from 'firebase/auth';
-// import { getFirestore } from 'firebase/firestore';
-// import { getStorage } from 'firebase/storage';
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const database = getDatabase(app);
 
-// const app = initializeApp(firebaseConfig);
-// export const auth = getAuth(app);
-// export const db = getFirestore(app);
-// export const storage = getStorage(app);
+// Disable email verification for testing
+auth.settings = {
+  appVerificationDisabledForTesting: true
+};
 
-// Mock Firebase exports for development
-export const auth = null;
-export const db = null;
-export const storage = null;
+export {
+  app,
+  auth,
+  database,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  ref,
+  set,
+  get,
+  update,
+  remove,
+  push,
+  onValue
+};
 
 export default firebaseConfig;
