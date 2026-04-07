@@ -29,7 +29,7 @@ const Dues = () => {
       if (method === 'paystack') {
         // Initialize Paystack payment
         const handler = window.PaystackPop.setup({
-          key: 'pk_test_your_paystack_public_key', // Replace with your Paystack public key
+          key: process.env.REACT_APP_PAYSTACK_PUBLIC_KEY || 'pk_test_your_paystack_public_key', // Use environment variable
           email: user.email,
           amount: totalOwed * 100, // Paystack uses amount in kobo/cents
           currency: 'GHS',
