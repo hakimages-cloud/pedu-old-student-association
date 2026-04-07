@@ -1,17 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { 
-  auth, 
-  database, 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut, 
-  onAuthStateChanged,
-  ref,
-  set,
-  get,
-  update,
-  push
-} from '../services/firebase';
+import { supabase } from '../services/firebase';
 
 const AuthContext = createContext();
 
@@ -28,38 +16,60 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        // Get user data from database
-        const userRef = ref(database, `users/${firebaseUser.uid}`);
-        const snapshot = await get(userRef);
+    // Get initial session
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
         
-        if (snapshot.exists()) {
-          const userData = snapshot.val();
+        setUser({
+          id: session.user.id,
+          email: session.user.email,
+          ...userData
+        });
+      }
+      setLoading(false);
+    };
+
+    getSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session) {
+          const { data: userData } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          
           setUser({
-            id: firebaseUser.uid,
-            email: firebaseUser.email,
+            id: session.user.id,
+            email: session.user.email,
             ...userData
           });
         } else {
-          setUser({
-            id: firebaseUser.uid,
-            email: firebaseUser.email,
-            name: firebaseUser.displayName || 'User'
-          });
+          setUser(null);
         }
-      } else {
-        setUser(null);
+        setLoading(false);
       }
-      setLoading(false);
-    });
+    );
 
-    return unsubscribe;
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (email, password) => {
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (error) throw error;
       return { success: true };
     } catch (error) {
       return { success: false, error: error.message };
@@ -68,41 +78,47 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      // Create Firebase user
-      const userCredential = await createUserWithEmailAndPassword(
-        auth, 
-        userData.email, 
-        userData.password
-      );
+      // Create Supabase user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: userData.email,
+        password: userData.password,
+        options: {
+          emailRedirectTo: window.location.origin
+        }
+      });
       
-      const firebaseUser = userCredential.user;
+      if (authError) throw authError;
       
       // Generate membership number
-      const usersRef = ref(database, 'users');
-      const usersSnapshot = await get(usersRef);
-      const userCount = usersSnapshot.exists() ? Object.keys(usersSnapshot.val()).length : 0;
+      const { data: users } = await supabase
+        .from('users')
+        .select('id');
+      
+      const userCount = users?.length || 0;
       const membershipNumber = `POS${String(userCount + 1).padStart(4, '0')}`;
       
       // Save user data to database
-      const userRef = ref(database, `users/${firebaseUser.uid}`);
-      const newUser = {
-        name: userData.name,
-        email: userData.email,
-        phone: userData.phone,
-        yearOfCompletion: userData.yearOfCompletion,
-        program: userData.program,
-        membershipNumber,
-        role: 'member',
-        status: 'active',
-        joinDate: new Date().toISOString().split('T')[0],
-        duesStatus: 'pending',
-        dependants: [],
-        address: '',
-        occupation: '',
-        bio: ''
-      };
+      const { error: dbError } = await supabase
+        .from('users')
+        .insert({
+          id: authData.user.id,
+          name: userData.name,
+          email: userData.email,
+          phone: userData.phone,
+          yearOfCompletion: userData.yearOfCompletion,
+          program: userData.program,
+          membershipNumber,
+          role: 'member',
+          status: 'active',
+          joinDate: new Date().toISOString().split('T')[0],
+          duesStatus: 'pending',
+          dependants: [],
+          address: '',
+          occupation: '',
+          bio: ''
+        });
       
-      await set(userRef, newUser);
+      if (dbError) throw dbError;
       
       return { success: true, membershipNumber };
     } catch (error) {
@@ -111,15 +127,20 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    await signOut(auth);
+    await supabase.auth.signOut();
   };
 
   const updateUser = async (updates) => {
     if (!user) return;
     
     try {
-      const userRef = ref(database, `users/${user.id}`);
-      await update(userRef, updates);
+      const { error } = await supabase
+        .from('users')
+        .update(updates)
+        .eq('id', user.id);
+      
+      if (error) throw error;
+      
       setUser(prev => ({ ...prev, ...updates }));
       return { success: true };
     } catch (error) {

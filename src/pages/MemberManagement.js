@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Navbar from '../components/Navbar';
 import toast from 'react-hot-toast';
 import { UserGroupIcon, PlusIcon, PencilIcon, TrashIcon, EyeIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
-import { database, ref, get, set, update, remove, onValue } from '../services/firebase';
+import { supabase } from '../services/firebase';
 
 const MemberManagement = () => {
   const { user } = useAuth();
@@ -12,25 +12,37 @@ const MemberManagement = () => {
   const [viewMode, setViewMode] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Load real users from Firebase
+  // Load real users from Supabase
   const [members, setMembers] = useState([]);
 
   useEffect(() => {
-    const usersRef = ref(database, 'users');
-    const unsubscribe = onValue(usersRef, (snapshot) => {
-      const usersData = snapshot.val();
-      if (usersData) {
-        const usersList = Object.keys(usersData).map(key => ({
-          id: key,
-          ...usersData[key]
-        }));
-        setMembers(usersList);
-      } else {
-        setMembers([]);
+    const fetchMembers = async () => {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*');
+      
+      if (error) {
+        console.error('Error fetching members:', error);
+        return;
       }
-    });
+      
+      setMembers(data || []);
+    };
 
-    return () => unsubscribe();
+    fetchMembers();
+
+    // Set up real-time subscription
+    const subscription = supabase
+      .channel('users')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'users' },
+        (payload) => {
+          fetchMembers();
+        }
+      )
+      .subscribe();
+
+    return () => supabase.removeChannel(subscription);
   }, []);
 
   const [formData, setFormData] = useState({
@@ -54,31 +66,34 @@ const MemberManagement = () => {
 
     try {
       // Generate membership number
-      const usersRef = ref(database, 'users');
-      const usersSnapshot = await get(usersRef);
-      const userCount = usersSnapshot.exists() ? Object.keys(usersSnapshot.val()).length : 0;
+      const { data: users } = await supabase
+        .from('users')
+        .select('id');
+      
+      const userCount = users?.length || 0;
       const membershipNumber = `POS${String(userCount + 1).padStart(4, '0')}`;
       
-      // Create member in Firebase
-      const newMemberRef = push(usersRef);
-      const newMember = {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        role: formData.role,
-        yearOfCompletion: formData.yearOfCompletion,
-        program: formData.program,
-        address: formData.address,
-        occupation: formData.occupation,
-        membershipNumber,
-        status: 'active',
-        joinDate: new Date().toISOString().split('T')[0],
-        duesStatus: 'pending',
-        lastPaymentDate: null,
-        dependants: 0
-      };
+      // Create member in Supabase
+      const { error } = await supabase
+        .from('users')
+        .insert({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          role: formData.role,
+          yearOfCompletion: formData.yearOfCompletion,
+          program: formData.program,
+          address: formData.address,
+          occupation: formData.occupation,
+          membershipNumber,
+          status: 'active',
+          joinDate: new Date().toISOString().split('T')[0],
+          duesStatus: 'pending',
+          lastPaymentDate: null,
+          dependants: 0
+        });
 
-      await set(newMemberRef, newMember);
+      if (error) throw error;
       
       setFormData({
         name: '',
@@ -99,8 +114,12 @@ const MemberManagement = () => {
 
   const handleUpdateMember = async (memberId, updates) => {
     try {
-      const memberRef = ref(database, `users/${memberId}`);
-      await update(memberRef, updates);
+      const { error } = await supabase
+        .from('users')
+        .update(updates)
+        .eq('id', memberId);
+      
+      if (error) throw error;
       toast.success('Member updated successfully!');
     } catch (error) {
       toast.error('Failed to update member: ' + error.message);
@@ -110,8 +129,12 @@ const MemberManagement = () => {
   const handleDeleteMember = async (memberId) => {
     if (window.confirm('Are you sure you want to delete this member?')) {
       try {
-        const memberRef = ref(database, `users/${memberId}`);
-        await remove(memberRef);
+        const { error } = await supabase
+          .from('users')
+          .delete()
+          .eq('id', memberId);
+        
+        if (error) throw error;
         toast.success('Member deleted successfully!');
       } catch (error) {
         toast.error('Failed to delete member: ' + error.message);
