@@ -47,11 +47,13 @@ const Register = () => {
         phone: formData.phone,
         yearOfCompletion: formData.yearOfCompletion,
         program: formData.program,
-        password: formData.password
+        password: formData.password,
+        address: '',
+        occupation: ''
       });
       
       if (result.success) {
-        toast.success('Registration successful!');
+        toast.success(`Registration successful! Your membership number is ${result.membershipNumber}`);
         navigate('/dashboard');
       } else {
         toast.error(result.error);

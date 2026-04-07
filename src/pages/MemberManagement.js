@@ -11,69 +11,33 @@ const MemberManagement = () => {
   const [viewMode, setViewMode] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Mock data - in production, this would come from your API
-  const [members, setMembers] = useState([
-    {
-      id: '1',
-      membershipNumber: 'POS0001',
-      name: 'Admin User',
-      email: 'admin@posa.com',
-      phone: '0201234567',
-      role: 'superadmin',
-      status: 'active',
-      joinDate: '2020-01-15',
-      yearOfCompletion: '2010',
-      program: 'Science',
-      duesStatus: 'paid',
-      lastPaymentDate: '2024-03-15',
-      dependants: 2
-    },
-    {
-      id: '2',
-      membershipNumber: 'POS0002',
-      name: 'Member User',
-      email: 'member@posa.com',
-      phone: '0249876543',
-      role: 'member',
-      status: 'active',
-      joinDate: '2021-06-20',
-      yearOfCompletion: '2015',
-      program: 'Arts',
-      duesStatus: 'pending',
-      lastPaymentDate: '2024-02-15',
-      dependants: 1
-    },
-    {
-      id: '3',
-      membershipNumber: 'POS0003',
-      name: 'Event Admin',
-      email: 'admin2@posa.com',
-      phone: '0275551234',
-      role: 'admin',
-      status: 'active',
-      joinDate: '2022-03-10',
-      yearOfCompletion: '2018',
-      program: 'Business',
-      duesStatus: 'paid',
-      lastPaymentDate: '2024-03-10',
-      dependants: 0
-    },
-    {
-      id: '4',
-      membershipNumber: 'POS0004',
-      name: 'John Doe',
-      email: 'john.doe@email.com',
-      phone: '0231112222',
-      role: 'member',
-      status: 'inactive',
-      joinDate: '2021-09-05',
-      yearOfCompletion: '2012',
-      program: 'Technical',
-      duesStatus: 'overdue',
-      lastPaymentDate: '2023-12-15',
-      dependants: 3
+  // Load real users from localStorage
+  const [members, setMembers] = useState(() => {
+    const storedUsers = JSON.parse(localStorage.getItem('posa_users') || '[]');
+    
+    // Add default admin if no users exist
+    if (storedUsers.length === 0) {
+      const defaultAdmin = {
+        id: '1',
+        membershipNumber: 'POS0001',
+        name: 'System Administrator',
+        email: 'admin@posa.com',
+        phone: '0201234567',
+        role: 'superadmin',
+        status: 'active',
+        joinDate: new Date().toISOString().split('T')[0],
+        yearOfCompletion: '2010',
+        program: 'Science',
+        duesStatus: 'paid',
+        lastPaymentDate: new Date().toISOString().split('T')[0],
+        dependants: 0
+      };
+      localStorage.setItem('posa_users', JSON.stringify([defaultAdmin]));
+      return [defaultAdmin];
     }
-  ]);
+    
+    return storedUsers;
+  });
 
   const [formData, setFormData] = useState({
     name: '',
@@ -94,9 +58,17 @@ const MemberManagement = () => {
       return;
     }
 
+    const users = JSON.parse(localStorage.getItem('posa_users') || '[]');
+    
+    // Check if email already exists
+    if (users.find(u => u.email === formData.email)) {
+      toast.error('A user with this email already exists');
+      return;
+    }
+
     const newMember = {
       id: Date.now().toString(),
-      membershipNumber: `POS${String(members.length + 1).padStart(4, '0')}`,
+      membershipNumber: `POS${String(users.length + 1).padStart(4, '0')}`,
       ...formData,
       status: 'active',
       joinDate: new Date().toISOString().split('T')[0],
@@ -105,7 +77,10 @@ const MemberManagement = () => {
       dependants: 0
     };
 
-    setMembers([...members, newMember]);
+    users.push(newMember);
+    localStorage.setItem('posa_users', JSON.stringify(users));
+    setMembers(users);
+    
     setFormData({
       name: '',
       email: '',
@@ -121,15 +96,21 @@ const MemberManagement = () => {
   };
 
   const handleUpdateMember = (memberId, updates) => {
-    setMembers(members.map(member => 
+    const users = JSON.parse(localStorage.getItem('posa_users') || '[]');
+    const updatedUsers = users.map(member => 
       member.id === memberId ? { ...member, ...updates } : member
-    ));
+    );
+    localStorage.setItem('posa_users', JSON.stringify(updatedUsers));
+    setMembers(updatedUsers);
     toast.success('Member updated successfully!');
   };
 
   const handleDeleteMember = (memberId) => {
     if (window.confirm('Are you sure you want to delete this member?')) {
-      setMembers(members.filter(member => member.id !== memberId));
+      const users = JSON.parse(localStorage.getItem('posa_users') || '[]');
+      const updatedUsers = users.filter(member => member.id !== memberId);
+      localStorage.setItem('posa_users', JSON.stringify(updatedUsers));
+      setMembers(updatedUsers);
       toast.success('Member deleted successfully!');
     }
   };

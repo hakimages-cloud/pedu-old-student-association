@@ -122,15 +122,6 @@ const Login = () => {
             </Link>
           </div>
         </form>
-
-        <div className="mt-6 border-t border-gray-200 pt-6">
-          <div className="text-center text-sm text-gray-600">
-            <p className="mb-2">Demo Accounts:</p>
-            <p>Super Admin: admin@posa.com / admin123</p>
-            <p>Admin: admin2@posa.com / admin123</p>
-            <p>Member: member@posa.com / member123</p>
-          </div>
-        </div>
       </div>
     </div>
   );

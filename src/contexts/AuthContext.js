@@ -34,14 +34,9 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      // Mock authentication - replace with actual API call
-      const mockUsers = [
-        { id: '1', email: 'admin@posa.com', password: 'admin123', role: 'superadmin', name: 'Admin User' },
-        { id: '2', email: 'member@posa.com', password: 'member123', role: 'member', name: 'Member User' },
-        { id: '3', email: 'admin2@posa.com', password: 'admin123', role: 'admin', name: 'Event Admin' }
-      ];
-
-      const foundUser = mockUsers.find(u => u.email === email && u.password === password);
+      // Real authentication - check localStorage for registered users
+      const users = JSON.parse(localStorage.getItem('posa_users') || '[]');
+      const foundUser = users.find(u => u.email === email && u.password === password);
       
       if (foundUser) {
         const userData = {
@@ -49,14 +44,21 @@ export const AuthProvider = ({ children }) => {
           email: foundUser.email,
           name: foundUser.name,
           role: foundUser.role,
-          membershipNumber: `POS${String(foundUser.id).padStart(4, '0')}`
+          membershipNumber: foundUser.membershipNumber,
+          phone: foundUser.phone,
+          yearOfCompletion: foundUser.yearOfCompletion,
+          program: foundUser.program,
+          address: foundUser.address,
+          occupation: foundUser.occupation,
+          bio: foundUser.bio,
+          dependants: foundUser.dependants || []
         };
         
         setUser(userData);
         localStorage.setItem('posa_user', JSON.stringify(userData));
         return { success: true };
       } else {
-        throw new Error('Invalid credentials');
+        throw new Error('Invalid email or password');
       }
     } catch (error) {
       return { success: false, error: error.message };
@@ -65,17 +67,37 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      // Mock registration - replace with actual API call
+      // Check if user already exists
+      const users = JSON.parse(localStorage.getItem('posa_users') || '[]');
+      const existingUser = users.find(u => u.email === userData.email);
+      
+      if (existingUser) {
+        throw new Error('An account with this email already exists');
+      }
+
+      // Generate membership number
+      const membershipNumber = `POS${String(users.length + 1).padStart(4, '0')}`;
+      
       const newUser = {
         id: Date.now().toString(),
         ...userData,
-        role: 'member',
-        membershipNumber: `POS${String(Date.now()).slice(-4)}`
+        membershipNumber,
+        role: 'member', // All new registrations start as members
+        status: 'pending', // Pending approval from admin
+        joinDate: new Date().toISOString().split('T')[0],
+        duesStatus: 'pending',
+        dependants: []
       };
       
+      // Save to users list
+      users.push(newUser);
+      localStorage.setItem('posa_users', JSON.stringify(users));
+      
+      // Auto-login after registration
       setUser(newUser);
       localStorage.setItem('posa_user', JSON.stringify(newUser));
-      return { success: true };
+      
+      return { success: true, membershipNumber };
     } catch (error) {
       return { success: false, error: error.message };
     }
