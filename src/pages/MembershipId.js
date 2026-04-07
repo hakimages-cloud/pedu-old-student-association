@@ -56,7 +56,7 @@ const MembershipId = () => {
             <h3 className="font-bold text-sm">{user?.name || 'Member Name'}</h3>
             <p className="text-xs opacity-80 mt-1">ID: {user?.membershipNumber || 'POS0000'}</p>
             <p className="text-xs opacity-80 mt-1">Role: {user?.role || 'member'}</p>
-            <p className="text-xs opacity-80 mt-1">Email: {user?.email || 'member@posa.com'}</p>
+            <p className="text-xs opacity-80 mt-1">Email: {user?.email || 'your-email@example.com'}</p>
             <p className="text-xs opacity-80 mt-1">Phone: {user?.phone || '0000000000'}</p>
           </div>
         </div>

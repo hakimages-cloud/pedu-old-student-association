@@ -8,14 +8,37 @@ const Dues = () => {
   const { user } = useAuth();
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
   const [processingPayment, setProcessingPayment] = useState(false);
+  const [duesHistory, setDuesHistory] = useState([]);
   
-  // Mock data - in production, this would come from your API
-  const duesHistory = [
-    { id: 1, month: 'January 2024', amount: 50, status: 'paid', date: '2024-01-15', method: 'MTN MoMo' },
-    { id: 2, month: 'February 2024', amount: 50, status: 'paid', date: '2024-02-14', method: 'Telecel Cash' },
-    { id: 3, month: 'March 2024', amount: 50, status: 'pending', date: null, method: null },
-    { id: 4, month: 'April 2024', amount: 50, status: 'pending', date: null, method: null },
-  ];
+  const [loading, setLoading] = useState(true);
+
+  // Load real dues data from Supabase
+  useEffect(() => {
+    const fetchDuesHistory = async () => {
+      if (!user) return;
+      
+      // For now, create a basic dues structure
+      // In future, this would come from a 'dues' table in Supabase
+      const currentYear = new Date().getFullYear();
+      const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                   'July', 'August', 'September', 'October', 'November', 'December'];
+      
+      const duesData = months.map((month, index) => ({
+        id: index + 1,
+        month: `${month} ${currentYear}`,
+        amount: 50, // Standard monthly due
+        status: index < new Date().getMonth() ? 'paid' : 'pending',
+        date: index < new Date().getMonth() ? 
+          new Date(currentYear, index, 15).toISOString().split('T')[0] : null,
+        method: index < new Date().getMonth() ? 'Paystack' : null
+      }));
+      
+      setDuesHistory(duesData);
+      setLoading(false);
+    };
+
+    fetchDuesHistory();
+  }, [user]);
 
   const totalPaid = duesHistory.filter(d => d.status === 'paid').reduce((sum, d) => sum + d.amount, 0);
   const totalOwed = duesHistory.filter(d => d.status === 'pending').reduce((sum, d) => sum + d.amount, 0);

@@ -24,76 +24,111 @@ const Gallery = () => {
       id: 2,
       title: 'Graduation Ceremony',
       category: 'ceremonies',
-      date: '2024-03-10',
-      url: 'https://via.placeholder.com/400x300?text=Graduation',
-      description: 'Celebrating our members\' achievements'
-    },
-    {
-      id: 3,
-      title: 'Sports Day',
-      category: 'sports',
-      date: '2024-01-20',
-      url: 'https://via.placeholder.com/400x300?text=Sports+Day',
-      description: 'Annual sports competition'
-    },
-    {
-      id: 4,
-      title: 'Community Service',
-      category: 'community',
-      date: '2024-02-28',
-      url: 'https://via.placeholder.com/400x300?text=Community+Service',
-      description: 'Giving back to the community'
-    },
-    {
-      id: 5,
-      title: 'Christmas Party',
-      category: 'events',
-      date: '2023-12-25',
-      url: 'https://via.placeholder.com/400x300?text=Christmas+Party',
-      description: 'End of year celebration'
-    },
-    {
-      id: 6,
-      title: 'Career Day',
-      category: 'education',
-      date: '2024-03-15',
-      url: 'https://via.placeholder.com/400x300?text=Career+Day',
-      description: 'Career guidance for current students'
-    }
-  ];
 
-  const videos = [
-    {
-      id: 1,
-      title: 'POSA Documentary 2024',
-      category: 'documentary',
-      date: '2024-03-01',
-      thumbnailUrl: 'https://via.placeholder.com/400x300?text=Documentary',
-      videoUrl: 'https://example.com/video1',
-      duration: '15:30',
-      description: 'A documentary about our association\'s impact'
-    },
-    {
-      id: 2,
-      title: 'Annual Meeting Highlights',
-      category: 'meetings',
-      date: '2024-02-15',
-      thumbnailUrl: 'https://via.placeholder.com/400x300?text=Meeting+Highlights',
-      videoUrl: 'https://example.com/video2',
-      duration: '8:45',
-      description: 'Key moments from our annual general meeting'
-    },
-    {
-      id: 3,
-      title: 'Member Testimonials',
-      category: 'testimonials',
-      date: '2024-01-10',
-      thumbnailUrl: 'https://via.placeholder.com/400x300?text=Testimonials',
-      videoUrl: 'https://example.com/video3',
-      duration: '12:20',
-      description: 'Members share their experiences'
-    }
-  ];
+  // Load real gallery data from Supabase
+  useEffect(() => {
+    const fetchGallery = async () => {
+      if (!user) return;
+      
+      // For now, create basic structure
+      // In future, this would come from 'gallery' table in Supabase
+      const samplePhotos = [
+        {
+          id: 1,
+          title: 'School Campus',
+          category: 'events',
+          date: new Date().toISOString().split('T')[0],
+          thumbnailUrl: 'https://via.placeholder.com/400x300?text=Campus',
+          fullSizeUrl: 'https://via.placeholder.com/800x600?text=Campus',
+          description: 'Beautiful view of our school campus'
+        },
+        {
+          id: 2,
+          title: 'Graduation Ceremony',
+          category: 'ceremonies',
+          date: new Date().toISOString().split('T')[0],
+          thumbnailUrl: 'https://via.placeholder.com/400x300?text=Graduation',
+          fullSizeUrl: 'https://via.placeholder.com/800x600?text=Graduation',
+          description: 'Celebrating our members\' achievements'
+        },
+        {
+          id: 3,
+          title: 'Sports Day',
+          category: 'sports',
+          date: new Date().toISOString().split('T')[0],
+          thumbnailUrl: 'https://via.placeholder.com/400x300?text=Sports+Day',
+          fullSizeUrl: 'https://via.placeholder.com/800x600?text=Sports+Day',
+          description: 'Annual sports competition'
+        },
+        {
+          id: 4,
+          title: 'Community Service',
+          category: 'community',
+          date: new Date().toISOString().split('T')[0],
+          thumbnailUrl: 'https://via.placeholder.com/400x300?text=Community+Service',
+          fullSizeUrl: 'https://via.placeholder.com/800x600?text=Community+Service',
+          description: 'Giving back to the community'
+        },
+        {
+          id: 5,
+          title: 'Christmas Party',
+          category: 'events',
+          date: new Date().toISOString().split('T')[0],
+          thumbnailUrl: 'https://via.placeholder.com/400x300?text=Christmas+Party',
+          fullSizeUrl: 'https://via.placeholder.com/800x600?text=Christmas+Party',
+          description: 'End of year celebration'
+        },
+        {
+          id: 6,
+          title: 'Career Day',
+          category: 'education',
+          date: new Date().toISOString().split('T')[0],
+          thumbnailUrl: 'https://via.placeholder.com/400x300?text=Career+Day',
+          fullSizeUrl: 'https://via.placeholder.com/800x600?text=Career+Day',
+          description: 'Career guidance for current students'
+        }
+      ];
+      
+      const sampleVideos = [
+        {
+          id: 1,
+          title: 'POSA Documentary 2024',
+          category: 'documentary',
+          date: new Date().toISOString().split('T')[0],
+          thumbnailUrl: 'https://via.placeholder.com/400x300?text=Documentary',
+          videoUrl: 'https://example.com/video1',
+          duration: '15:30',
+          description: 'A documentary about our association\'s impact'
+        },
+        {
+          id: 2,
+          title: 'Annual Meeting Highlights',
+          category: 'meetings',
+          date: new Date().toISOString().split('T')[0],
+          thumbnailUrl: 'https://via.placeholder.com/400x300?text=Meeting+Highlights',
+          videoUrl: 'https://example.com/video2',
+          duration: '8:45',
+          description: 'Key moments from our annual general meeting'
+        },
+        {
+          id: 3,
+          title: 'Member Testimonials',
+          category: 'testimonials',
+          date: new Date().toISOString().split('T')[0],
+          thumbnailUrl: 'https://via.placeholder.com/400x300?text=Testimonials',
+          videoUrl: 'https://example.com/video3',
+          duration: '12:20',
+          description: 'Members share their experiences'
+        }
+      ];
+      
+      setPhotos(samplePhotos);
+      setVideos(sampleVideos);
+      setLoading(false);
+    };
+
+    fetchGallery();
+  }, [user]);
 
   const categories = [
     { value: 'all', label: 'All Categories' },

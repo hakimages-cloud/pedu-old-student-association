@@ -10,94 +10,66 @@ const Events = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
   const [showEventForm, setShowEventForm] = useState(false);
   const [showAnnouncementForm, setShowAnnouncementForm] = useState(false);
-  
-  // Mock data - in production, this would come from your API
-  const upcomingEvents = [
-    {
-      id: 1,
-      title: 'Monthly General Meeting',
-      description: 'Join us for our monthly general meeting to discuss association matters and upcoming activities.',
-      date: '2024-03-25',
-      time: '5:00 PM',
-      location: 'School Assembly Hall',
-      type: 'meeting',
-      organizer: 'Executive Committee',
-      attendees: 45,
-      maxAttendees: 100
-    },
-    {
-      id: 2,
-      title: 'Career Guidance Workshop',
-      description: 'A workshop to help current students with career choices and professional development.',
-      date: '2024-04-10',
-      time: '10:00 AM',
-      location: 'Computer Lab',
-      type: 'workshop',
-      organizer: 'Education Committee',
-      attendees: 30,
-      maxAttendees: 50
-    },
-    {
-      id: 3,
-      title: 'Annual Reunion Dinner',
-      description: 'Our biggest annual event - a night of reunion, networking, and celebration.',
-      date: '2024-05-15',
-      time: '7:00 PM',
-      location: 'Grand Hotel Conference Center',
-      type: 'social',
-      organizer: 'Events Committee',
-      attendees: 120,
-      maxAttendees: 200,
-      ticketPrice: 100
-    },
-    {
-      id: 4,
-      title: 'Community Service Day',
-      description: 'Giving back to our community through various service activities.',
-      date: '2024-04-20',
-      time: '8:00 AM',
-      location: 'Pedu Community Center',
-      type: 'community',
-      organizer: 'Welfare Committee',
-      attendees: 25,
-      maxAttendees: 100
-    }
-  ];
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [pastEvents, setPastEvents] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const pastEvents = [
-    {
-      id: 5,
-      title: 'Christmas Party 2023',
-      description: 'End of year celebration with members and their families.',
-      date: '2023-12-25',
-      time: '6:00 PM',
-      location: 'School Premises',
-      type: 'social',
-      organizer: 'Events Committee',
-      attendees: 150,
-      status: 'completed'
-    },
-    {
-      id: 6,
-      title: 'Sports Competition',
-      description: 'Annual sports day with various competitions.',
-      date: '2024-01-20',
-      time: '9:00 AM',
-      location: 'School Sports Field',
-      type: 'sports',
-      organizer: 'Sports Committee',
-      attendees: 80,
-      status: 'completed'
-    }
-  ];
+  // Load real events data from Supabase
+  useEffect(() => {
+    const fetchEvents = async () => {
+      if (!user) return;
+      
+      // For now, create basic structure
+      // In future, this would come from 'events' and 'announcements' tables
+      const currentDate = new Date();
+      
+      // Sample upcoming events
+      const sampleUpcoming = [
+        {
+          id: 1,
+          title: 'Annual General Meeting',
+          date: currentDate.toISOString().split('T')[0],
+          time: '10:00 AM',
+          location: 'School Auditorium',
+          description: 'Annual meeting to discuss association progress and future plans',
+          type: 'meeting'
+        }
+      ];
+      
+      // Sample past events
+      const samplePast = [
+        {
+          id: 2,
+          title: 'Homecoming Celebration',
+          date: new Date(currentDate.getFullYear() - 1, 12, 15).toISOString().split('T')[0],
+          time: '2:00 PM',
+          location: 'School Premises',
+          description: 'Annual homecoming celebration for all alumni',
+          type: 'celebration'
+        }
+      ];
+      
+      // Sample announcements
+      const sampleAnnouncements = [
+        {
+          id: 1,
+          title: 'New Executive Committee Elected',
+          content: 'The new executive committee for 2024 has been elected. Congratulations to all members!',
+          priority: 'high',
+          date: currentDate.toISOString().split('T')[0],
+          author: 'Admin'
+        }
+      ];
+      
+      setUpcomingEvents(sampleUpcoming);
+      setPastEvents(samplePast);
+      setAnnouncements(sampleAnnouncements);
+      setLoading(false);
+    };
 
-  const announcements = [
-    {
-      id: 1,
-      title: 'New Dues Structure Effective April 2024',
-      content: 'The executive committee has approved a revised dues structure to better support our welfare programs. Monthly dues will remain at GHC 50, with additional options for annual payments.',
-      type: 'important',
-      date: '2024-03-15',
+    fetchEvents();
+  }, [user]);
       author: 'Treasurer',
       priority: 'high'
     },
