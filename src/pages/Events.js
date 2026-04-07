@@ -70,28 +70,12 @@ const Events = () => {
 
     fetchEvents();
   }, [user]);
-      author: 'Treasurer',
-      priority: 'high'
-    },
-    {
-      id: 2,
-      title: 'Welfare Fund Now Available',
-      content: 'Our welfare fund is now fully operational. Members can apply for support for medical emergencies, funerals, weddings, and education needs. Applications are processed within 5-7 business days.',
-      type: 'information',
-      date: '2024-03-10',
-      author: 'Welfare Committee',
-      priority: 'medium'
-    },
-    {
-      id: 3,
-      title: 'Membership Drive Success',
-      content: 'Thanks to our recent membership drive, we\'ve welcomed 25 new members this quarter! Welcome to all new members of the POSA family.',
-      type: 'celebration',
-      date: '2024-03-05',
-      author: 'Membership Committee',
-      priority: 'low'
-    }
-  ];
+
+  const [formData, setFormData] = useState({
+    title: '',
+    content: '',
+    priority: 'medium'
+  });
 
   const [eventForm, setEventForm] = useState({
     title: '',

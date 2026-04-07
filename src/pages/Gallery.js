@@ -24,6 +24,12 @@ const Gallery = () => {
       id: 2,
       title: 'Graduation Ceremony',
       category: 'ceremonies',
+      date: new Date().toISOString().split('T')[0],
+      thumbnailUrl: 'https://via.placeholder.com/400x300?text=Graduation',
+      fullSizeUrl: 'https://via.placeholder.com/800x600?text=Graduation',
+      description: 'Celebrating our members\' achievements'
+    }
+  ];
 
   // Load real gallery data from Supabase
   useEffect(() => {
