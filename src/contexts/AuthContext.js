@@ -29,7 +29,21 @@ export const AuthProvider = ({ children }) => {
         setUser({
           id: session.user.id,
           email: session.user.email,
-          ...userData
+          name: userData?.name,
+          phone: userData?.phone,
+          year_of_completion: userData?.year_of_completion,
+          program: userData?.program,
+          membership_number: userData?.membership_number,
+          role: userData?.role,
+          status: userData?.status,
+          join_date: userData?.join_date,
+          dues_status: userData?.dues_status,
+          dependants: userData?.dependants,
+          address: userData?.address,
+          occupation: userData?.occupation,
+          bio: userData?.bio,
+          created_at: userData?.created_at,
+          updated_at: userData?.updated_at
         });
       }
       setLoading(false);
@@ -50,7 +64,21 @@ export const AuthProvider = ({ children }) => {
           setUser({
             id: session.user.id,
             email: session.user.email,
-            ...userData
+            name: userData?.name,
+            phone: userData?.phone,
+            year_of_completion: userData?.year_of_completion,
+            program: userData?.program,
+            membership_number: userData?.membership_number,
+            role: userData?.role,
+            status: userData?.status,
+            join_date: userData?.join_date,
+            dues_status: userData?.dues_status,
+            dependants: userData?.dependants,
+            address: userData?.address,
+            occupation: userData?.occupation,
+            bio: userData?.bio,
+            created_at: userData?.created_at,
+            updated_at: userData?.updated_at
           });
         } else {
           setUser(null);
@@ -105,14 +133,14 @@ export const AuthProvider = ({ children }) => {
           name: userData.name,
           email: userData.email,
           phone: userData.phone,
-          yearOfCompletion: userData.yearOfCompletion,
+          year_of_completion: userData.yearOfCompletion,
           program: userData.program,
-          membershipNumber,
+          membership_number: membershipNumber,
           role: 'member',
           status: 'active',
-          joinDate: new Date().toISOString().split('T')[0],
-          duesStatus: 'pending',
-          dependants: [],
+          join_date: new Date().toISOString().split('T')[0],
+          dues_status: 'pending',
+          dependants: '[]',
           address: '',
           occupation: '',
           bio: ''

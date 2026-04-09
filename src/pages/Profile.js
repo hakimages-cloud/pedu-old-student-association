@@ -11,15 +11,15 @@ const Profile = () => {
     name: user?.name || '',
     email: user?.email || '',
     phone: user?.phone || '',
-    yearOfCompletion: user?.yearOfCompletion || '',
+    yearOfCompletion: user?.year_of_completion || '',
     program: user?.program || '',
     address: user?.address || '',
     occupation: user?.occupation || '',
     bio: user?.bio || '',
-    membershipNumber: user?.membershipNumber || ''
+    membershipNumber: user?.membership_number || ''
   });
   
-  const [dependants, setDependants] = useState(user?.dependants || []);
+  const [dependants, setDependants] = useState(user?.dependants ? JSON.parse(user.dependants) : []);
   const [showAddDependant, setShowAddDependant] = useState(false);
   const [newDependant, setNewDependant] = useState({
     name: '',
@@ -39,7 +39,19 @@ const Profile = () => {
     e.preventDefault();
     
     try {
-      await updateUser(formData);
+      // Convert camelCase to snake_case for database
+      const dbUpdates = {
+        ...formData,
+        year_of_completion: formData.yearOfCompletion,
+        membership_number: formData.membershipNumber,
+        dependants: JSON.stringify(dependants)
+      };
+      
+      // Remove camelCase fields
+      delete dbUpdates.yearOfCompletion;
+      delete dbUpdates.membershipNumber;
+      
+      await updateUser(dbUpdates);
       setIsEditing(false);
       toast.success('Profile updated successfully!');
     } catch (error) {
