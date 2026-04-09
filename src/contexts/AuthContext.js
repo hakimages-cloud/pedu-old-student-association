@@ -131,7 +131,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateUser = async (updates) => {
-    if (!user) return;
+    if (!user) return { success: false, error: 'No user logged in' };
     
     try {
       const { error } = await supabase
@@ -141,7 +141,18 @@ export const AuthProvider = ({ children }) => {
       
       if (error) throw error;
       
-      setUser(prev => ({ ...prev, ...updates }));
+      // Refresh user data after update
+      const { data: userData } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      setUser(prev => ({ 
+        ...prev, 
+        ...userData 
+      }));
+      
       return { success: true };
     } catch (error) {
       return { success: false, error: error.message };

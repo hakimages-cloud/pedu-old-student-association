@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Supabase Test</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Supabase Connection Test</h1>
+    <div id="result"></div>
+    
+    <script>
+        const { createClient } = supabase;
+        
+        const supabase = createClient(
+            'https://blgjwfbsjqojfbjqwpim.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJsZ2p3ZmJzanFvamZianF3cGltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1NTUxNjIsImV4cCI6MjA5MTEzMTE2Mn0.2GpwubVzKxQcAbbCb-omrTjz0V6tJah8kYuScDRJ0po'
+        );
+        
+        async function testConnection() {
+            try {
+                const { data, error } = await supabase.from('users').select('count').limit(1);
+                
+                if (error) {
+                    document.getElementById('result').innerHTML = '❌ Error: ' + error.message;
+                } else {
+                    document.getElementById('result').innerHTML = '✅ Supabase connection successful! Users table accessible.';
+                }
+            } catch (err) {
+                document.getElementById('result').innerHTML = '❌ Connection failed: ' + err.message;
+            }
+        }
+        
+        testConnection();
+    </script>
+</body>
+</html>
