@@ -20,52 +20,40 @@ const Events = () => {
     const fetchEvents = async () => {
       if (!user) return;
       
-      // For now, create basic structure
-      // In future, this would come from 'events' and 'announcements' tables
-      const currentDate = new Date();
-      
-      // Sample upcoming events
-      const sampleUpcoming = [
-        {
-          id: 1,
-          title: 'Annual General Meeting',
-          date: currentDate.toISOString().split('T')[0],
-          time: '10:00 AM',
-          location: 'School Auditorium',
-          description: 'Annual meeting to discuss association progress and future plans',
-          type: 'meeting'
+      try {
+        // Fetch events from Supabase
+        const { data: eventsData, error: eventsError } = await supabase
+          .from('events')
+          .select('*')
+          .order('date', { ascending: true });
+        
+        // Fetch announcements from Supabase
+        const { data: announcementsData, error: announcementsError } = await supabase
+          .from('announcements')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (eventsError) {
+          console.error('Error fetching events:', eventsError);
         }
-      ];
-      
-      // Sample past events
-      const samplePast = [
-        {
-          id: 2,
-          title: 'Homecoming Celebration',
-          date: new Date(currentDate.getFullYear() - 1, 12, 15).toISOString().split('T')[0],
-          time: '2:00 PM',
-          location: 'School Premises',
-          description: 'Annual homecoming celebration for all alumni',
-          type: 'celebration'
+        
+        if (announcementsError) {
+          console.error('Error fetching announcements:', announcementsError);
         }
-      ];
-      
-      // Sample announcements
-      const sampleAnnouncements = [
-        {
-          id: 1,
-          title: 'New Executive Committee Elected',
-          content: 'The new executive committee for 2024 has been elected. Congratulations to all members!',
-          priority: 'high',
-          date: currentDate.toISOString().split('T')[0],
-          author: 'Admin'
-        }
-      ];
-      
-      setUpcomingEvents(sampleUpcoming);
-      setPastEvents(samplePast);
-      setAnnouncements(sampleAnnouncements);
-      setLoading(false);
+
+        // Separate upcoming and past events
+        const currentDate = new Date();
+        const upcoming = eventsData?.filter(event => new Date(event.date) >= currentDate) || [];
+        const past = eventsData?.filter(event => new Date(event.date) < currentDate) || [];
+        
+        setUpcomingEvents(upcoming);
+        setPastEvents(past);
+        setAnnouncements(announcementsData || []);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchEvents();

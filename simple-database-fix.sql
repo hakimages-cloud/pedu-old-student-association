@@ -1,7 +1,10 @@
--- Complete Database Schema Fix for POSA
+-- Simple Database Schema Fix for POSA
 -- Run this in your Supabase SQL Editor
 
--- 1. Fix users table schema and add missing columns
+-- 1. First, drop the dependants column if it exists as integer
+ALTER TABLE users DROP COLUMN IF EXISTS dependants;
+
+-- 2. Add all missing columns with correct types
 ALTER TABLE users 
 ADD COLUMN IF NOT EXISTS join_date DATE,
 ADD COLUMN IF NOT EXISTS dues_status TEXT DEFAULT 'pending',
@@ -16,33 +19,7 @@ ADD COLUMN IF NOT EXISTS last_payment_date DATE,
 ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
 ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
 
--- Fix dependants column if it exists as integer
-DO $$
-BEGIN
-  -- Check if dependants column exists and is integer type
-  IF EXISTS (
-    SELECT 1 
-    FROM information_schema.columns 
-    WHERE table_name = 'users' 
-    AND column_name = 'dependants' 
-    AND data_type = 'integer'
-  ) THEN
-    -- Convert integer dependants to text and drop old column
-    ALTER TABLE users DROP COLUMN IF EXISTS dependants;
-  END IF;
-  
-  -- Add dependants as text if it doesn't exist
-  IF NOT EXISTS (
-    SELECT 1 
-    FROM information_schema.columns 
-    WHERE table_name = 'users' 
-    AND column_name = 'dependants'
-  ) THEN
-    ALTER TABLE users ADD COLUMN dependants TEXT DEFAULT '[]';
-  END IF;
-END $$;
-
--- 2. Create events table
+-- 3. Create events table
 CREATE TABLE IF NOT EXISTS events (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   title TEXT NOT NULL,
@@ -56,7 +33,7 @@ CREATE TABLE IF NOT EXISTS events (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 3. Create announcements table
+-- 4. Create announcements table
 CREATE TABLE IF NOT EXISTS announcements (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   title TEXT NOT NULL,
@@ -67,7 +44,7 @@ CREATE TABLE IF NOT EXISTS announcements (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 4. Create dues table
+-- 5. Create dues table
 CREATE TABLE IF NOT EXISTS dues (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES users(id) NOT NULL,
@@ -82,7 +59,7 @@ CREATE TABLE IF NOT EXISTS dues (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 5. Create welfare table
+-- 6. Create welfare table
 CREATE TABLE IF NOT EXISTS welfare (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES users(id) NOT NULL,
@@ -99,20 +76,20 @@ CREATE TABLE IF NOT EXISTS welfare (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 6. Create indexes
+-- 7. Create indexes
 CREATE INDEX IF NOT EXISTS idx_events_date ON events(date);
 CREATE INDEX IF NOT EXISTS idx_announcements_priority ON announcements(priority);
 CREATE INDEX IF NOT EXISTS idx_dues_user_id ON dues(user_id);
 CREATE INDEX IF NOT EXISTS idx_welfare_user_id ON welfare(user_id);
 CREATE INDEX IF NOT EXISTS idx_welfare_status ON welfare(status);
 
--- 7. Enable RLS on all tables
+-- 8. Enable RLS on all tables
 ALTER TABLE events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE dues ENABLE ROW LEVEL SECURITY;
 ALTER TABLE welfare ENABLE ROW LEVEL SECURITY;
 
--- 8. Create RLS policies
+-- 9. Create RLS policies
 -- Events policies
 CREATE POLICY "Anyone can view events" ON events FOR SELECT USING (true);
 CREATE POLICY "Admins can manage events" ON events FOR ALL USING (
@@ -162,7 +139,7 @@ CREATE POLICY "Admins can manage welfare" ON welfare FOR ALL USING (
   )
 );
 
--- 9. Update existing users with proper data
+-- 10. Update existing users with proper data
 UPDATE users 
 SET 
   join_date = COALESCE(join_date, CURRENT_DATE),

@@ -17,24 +17,25 @@ const Dues = () => {
     const fetchDuesHistory = async () => {
       if (!user) return;
       
-      // For now, create a basic dues structure
-      // In future, this would come from a 'dues' table in Supabase
-      const currentYear = new Date().getFullYear();
-      const months = ['January', 'February', 'March', 'April', 'May', 'June', 
-                   'July', 'August', 'September', 'October', 'November', 'December'];
-      
-      const duesData = months.map((month, index) => ({
-        id: index + 1,
-        month: `${month} ${currentYear}`,
-        amount: 50, // Standard monthly due
-        status: index < new Date().getMonth() ? 'paid' : 'pending',
-        date: index < new Date().getMonth() ? 
-          new Date(currentYear, index, 15).toISOString().split('T')[0] : null,
-        method: index < new Date().getMonth() ? 'Paystack' : null
-      }));
-      
-      setDuesHistory(duesData);
-      setLoading(false);
+      try {
+        const { data, error } = await supabase
+          .from('dues')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          console.error('Error fetching dues:', error);
+          setDuesHistory([]);
+        } else {
+          setDuesHistory(data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching dues:', error);
+        setDuesHistory([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchDuesHistory();
