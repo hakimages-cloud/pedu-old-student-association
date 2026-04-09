@@ -18,35 +18,72 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     // Get initial session
     const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        const { data: userData } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
         
-        setUser({
-          id: session.user.id,
-          email: session.user.email,
-          name: userData?.name,
-          phone: userData?.phone,
-          year_of_completion: userData?.year_of_completion,
-          program: userData?.program,
-          membership_number: userData?.membership_number,
-          role: userData?.role,
-          status: userData?.status,
-          join_date: userData?.join_date,
-          dues_status: userData?.dues_status,
-          dependants: userData?.dependants,
-          address: userData?.address,
-          occupation: userData?.occupation,
-          bio: userData?.bio,
-          created_at: userData?.created_at,
-          updated_at: userData?.updated_at
-        });
+        if (error) {
+          console.error('Error getting session:', error);
+          setLoading(false);
+          return;
+        }
+        
+        if (session) {
+          const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (userError) {
+            console.error('Error getting user data:', userError);
+            setUser({
+              id: session.user.id,
+              email: session.user.email,
+              name: session.user.user_metadata?.name || '',
+              phone: '',
+              year_of_completion: '',
+              program: '',
+              membership_number: '',
+              role: 'member',
+              status: 'active',
+              join_date: new Date().toISOString().split('T')[0],
+              dues_status: 'pending',
+              dependants: '[]',
+              address: '',
+              occupation: '',
+              bio: ''
+            });
+          } else {
+            setUser({
+              id: session.user.id,
+              email: session.user.email,
+              name: userData?.name,
+              phone: userData?.phone,
+              year_of_completion: userData?.year_of_completion,
+              program: userData?.program,
+              membership_number: userData?.membership_number,
+              role: userData?.role,
+              status: userData?.status,
+              join_date: userData?.join_date,
+              dues_status: userData?.dues_status,
+              dependants: userData?.dependants,
+              address: userData?.address,
+              occupation: userData?.occupation,
+              bio: userData?.bio,
+              last_payment_date: userData?.last_payment_date,
+              created_at: userData?.created_at,
+              updated_at: userData?.updated_at
+            });
+          }
+        } else {
+          setUser(null);
+        }
+      } catch (error) {
+        console.error('Session error:', error);
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     getSession();
@@ -54,36 +91,61 @@ export const AuthProvider = ({ children }) => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (session) {
-          const { data: userData } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-          
-          setUser({
-            id: session.user.id,
-            email: session.user.email,
-            name: userData?.name,
-            phone: userData?.phone,
-            year_of_completion: userData?.year_of_completion,
-            program: userData?.program,
-            membership_number: userData?.membership_number,
-            role: userData?.role,
-            status: userData?.status,
-            join_date: userData?.join_date,
-            dues_status: userData?.dues_status,
-            dependants: userData?.dependants,
-            address: userData?.address,
-            occupation: userData?.occupation,
-            bio: userData?.bio,
-            created_at: userData?.created_at,
-            updated_at: userData?.updated_at
-          });
-        } else {
+        try {
+          if (session) {
+            const { data: userData, error: userError } = await supabase
+              .from('users')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+            
+            if (userError) {
+              console.error('Error getting user data on auth change:', userError);
+              setUser({
+                id: session.user.id,
+                email: session.user.email,
+                name: session.user.user_metadata?.name || '',
+                phone: '',
+                year_of_completion: '',
+                program: '',
+                membership_number: '',
+                role: 'member',
+                status: 'active',
+                join_date: new Date().toISOString().split('T')[0],
+                dues_status: 'pending',
+                dependants: '[]',
+                address: '',
+                occupation: '',
+                bio: ''
+              });
+            } else {
+              setUser({
+                id: session.user.id,
+                email: session.user.email,
+                name: userData?.name,
+                phone: userData?.phone,
+                year_of_completion: userData?.year_of_completion,
+                program: userData?.program,
+                membership_number: userData?.membership_number,
+                role: userData?.role,
+                status: userData?.status,
+                join_date: userData?.join_date,
+                dues_status: userData?.dues_status,
+                dependants: userData?.dependants,
+                address: userData?.address,
+                occupation: userData?.occupation,
+                bio: userData?.bio,
+                created_at: userData?.created_at,
+                updated_at: userData?.updated_at
+              });
+            }
+          } else {
+            setUser(null);
+          }
+        } catch (error) {
+          console.error('Auth state change error:', error);
           setUser(null);
         }
-        setLoading(false);
       }
     );
 
