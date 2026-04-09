@@ -198,68 +198,29 @@ const Gallery = () => {
                 </div>
               </div>
             ))}
-                        className="w-full h-48 object-cover"
-                      />
-                    </div>
-                    <div className="p-4">
-                      <h3 className="text-lg font-medium text-gray-900">{photo.title}</h3>
-                      <p className="text-sm text-gray-600 mt-1">{photo.description}</p>
-                      <div className="mt-3 flex items-center justify-between text-sm text-gray-500">
-                        <span>{photo.date}</span>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 capitalize">
-                          {photo.category}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         )}
 
         {/* Videos Grid */}
         {activeTab === 'videos' && (
-          <div>
-            {filteredVideos.length === 0 ? (
-              <div className="text-center py-12">
-                <VideoCameraIcon className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No videos found</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Try adjusting your search or filter criteria
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredVideos.map((video) => (
-                  <div key={video.id} className="card overflow-hidden">
-                    <div className="relative aspect-w-16 aspect-h-12 bg-gray-200">
-                      <img
-                        src={video.thumbnailUrl}
-                        alt={video.title}
-                        className="w-full h-48 object-cover"
-                      />
-                      <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                        <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                          <VideoCameraIcon className="h-6 w-6 text-gray-900" />
-                        </div>
-                      </div>
-                      <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs">
-                        {video.duration}
-                      </div>
-                    </div>
-                    <div className="p-4">
-                      <h3 className="text-lg font-medium text-gray-900">{video.title}</h3>
-                      <p className="text-sm text-gray-600 mt-1">{video.description}</p>
-                      <div className="mt-3 flex items-center justify-between text-sm text-gray-500">
-                        <span>{video.date}</span>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 capitalize">
-                          {video.category}
-                        </span>
-                      </div>
-                    </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {filteredVideos.map(video => (
+              <div key={video.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                <div className="relative">
+                  <img
+                    src={video.thumbnailUrl}
+                    alt={video.title}
+                    className="w-full h-48 object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                    <VideoCameraIcon className="h-12 w-12 text-white" />
                   </div>
-                ))}
+                </div>
+                <div className="p-4">
+                  <h3 className="font-semibold text-gray-900 mb-2">{video.title}</h3>
+                  <p className="text-sm text-gray-600 mb-2">{video.description}</p>
+                  <p className="text-xs text-gray-500">{video.duration} • {video.date}</p>
+                </div>
               </div>
             )}
           </div>
