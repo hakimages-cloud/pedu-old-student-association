@@ -15,7 +15,8 @@ const Profile = () => {
     program: user?.program || '',
     address: user?.address || '',
     occupation: user?.occupation || '',
-    bio: user?.bio || ''
+    bio: user?.bio || '',
+    membershipNumber: user?.membershipNumber || ''
   });
   
   const [dependants, setDependants] = useState(user?.dependants || []);
@@ -111,7 +112,6 @@ const Profile = () => {
                         value={formData.email}
                         onChange={handleInputChange}
                         className="mt-1 input-field"
-                        disabled
                       />
                     </div>
                     <div>
