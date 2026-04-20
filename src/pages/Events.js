@@ -51,6 +51,9 @@ const Events = () => {
         setAnnouncements(announcementsData || []);
       } catch (error) {
         console.error('Error fetching data:', error);
+        setUpcomingEvents([]);
+        setPastEvents([]);
+        setAnnouncements([]);
       } finally {
         setLoading(false);
       }

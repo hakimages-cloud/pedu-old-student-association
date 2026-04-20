@@ -8,7 +8,7 @@ import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import Dues from './pages/Dues';
 import Welfare from './pages/Welfare';
-// import Gallery from './pages/Gallery';
+import Gallery from './pages/Gallery';
 import Events from './pages/Events';
 import MemberManagement from './pages/MemberManagement';
 import MembershipId from './pages/MembershipId';
@@ -68,13 +68,11 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
       
-      {/*
       <Route path="/gallery" element={
         <ProtectedRoute>
           <Gallery />
         </ProtectedRoute>
       } />
-      */}
       
       <Route path="/events" element={
         <ProtectedRoute>

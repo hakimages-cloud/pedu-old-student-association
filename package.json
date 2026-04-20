@@ -6,7 +6,9 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "eject": "react-scripts eject"
   },
   "dependencies": {
@@ -26,7 +28,12 @@
     "@heroicons/react": "^2.0.16",
     "react-to-print": "^2.14.7",
     "date-fns": "^2.29.3",
-    "react-hot-toast": "^2.4.0"
+    "react-hot-toast": "^2.4.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/user-event": "^14.4.3",
+    "jest": "^27.5.1",
+    "babel-jest": "^7.22.5"
   },
   "overrides": {
     "lodash": "4.17.21"

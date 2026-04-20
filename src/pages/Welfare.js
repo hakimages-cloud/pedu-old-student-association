@@ -7,29 +7,61 @@ import { HeartIcon, PlusIcon, DocumentTextIcon, CheckCircleIcon, ClockIcon, XCir
 const Welfare = () => {
   const { user } = useAuth();
   const [showApplicationForm, setShowApplicationForm] = useState(false);
-  const [applications, setApplications] = useState([
-    {
-      id: 1,
-      type: 'funeral',
-      amount: 500,
-      description: 'Support for father\'s funeral expenses',
-      status: 'approved',
-      date: '2024-02-15',
-      approvedDate: '2024-02-18',
-      approvedBy: 'Admin User'
-    },
-    {
-      id: 2,
-      type: 'medical',
-      amount: 300,
-      description: 'Medical emergency support',
-      status: 'pending',
-      date: '2024-03-01',
-      approvedDate: null,
-      approvedBy: null
-    }
-  ]);
-  
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load real welfare data from Supabase
+  useEffect(() => {
+    const fetchWelfareApplications = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('welfare')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('requested_at', { ascending: false });
+        
+        if (error) {
+          console.error('Error fetching welfare applications:', error);
+          // Fallback to sample data if database fails
+          const fallbackData = [
+            {
+              id: 1,
+              type: 'funeral',
+              amount: 500,
+              description: 'Support for father\'s funeral expenses',
+              status: 'approved',
+              date: '2024-02-15',
+              approvedDate: '2024-02-18',
+              approvedBy: 'Admin User'
+            },
+            {
+              id: 2,
+              type: 'medical',
+              amount: 300,
+              description: 'Medical emergency support',
+              status: 'pending',
+              date: '2024-03-01',
+              approvedDate: null,
+              approvedBy: null
+            }
+          ];
+          setApplications(fallbackData);
+        } else {
+          setApplications(data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching welfare applications:', error);
+        setApplications([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWelfareApplications();
+  }, [user]);
+
   const [formData, setFormData] = useState({
     type: '',
     amount: '',

@@ -222,7 +222,7 @@ const Gallery = () => {
                   <p className="text-xs text-gray-500">{video.duration} • {video.date}</p>
                 </div>
               </div>
-            )}
+            ))}
           </div>
         )}
 
