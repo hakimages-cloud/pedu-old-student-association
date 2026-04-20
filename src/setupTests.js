@@ -1,7 +1,5 @@
-import '@testing-library/jest-dom';
-
 // Mock Supabase for tests
-global.supabase = {
+const mockSupabase = {
   auth: {
     getSession: jest.fn(() => Promise.resolve({
       data: { session: null },
@@ -20,3 +18,6 @@ global.supabase = {
     update: jest.fn(),
   })),
 };
+
+// Make supabase available globally
+global.supabase = mockSupabase;
